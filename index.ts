@@ -102,7 +102,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "http://localhost:3000", // Permitir solicitudes desde este origen
+    origin: ["http://localhost:3000", "https://socli.vercel.app/"],
     methods: ["GET", "POST"] // Métodos permitidos
   }
 });
