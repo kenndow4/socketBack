@@ -128,7 +128,7 @@ const MessageModel: Model<IMessage> = mongoose.model<IMessage>('Message', messag
 
 // Ruta principal que envía un mensaje <h1> al navegador
 app.get('/', (req, res) => {
-  res.send('<h1>Bienvenido al servidor!</h1>');
+  res.send('<h1>Bienvenido al servidor sock!</h1>');
 });
 
 io.on('connection', async (socket: Socket) => {
