@@ -106,7 +106,7 @@ const io = new SocketIOServer(server, {
   }
 });
 
-mongoose.connect("mongodb+srv://kendowcent:Juventus@cluster0.rocdkbv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+mongoose.connect("mongodb+srv://monk:juventus@cluster0.rocdkbv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => {
     console.log('Conexión a la base de datos establecida con éxito');
   })
