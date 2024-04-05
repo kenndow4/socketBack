@@ -100,7 +100,12 @@ interface IMessage extends Document {
 
 const app = express();
 const server = http.createServer(app);
-const io = new SocketIOServer(server);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: ["http://localhost:3000", "https://socli.vercel.app/"],
+    methods: ["GET", "POST"] // Métodos permitidos
+  }
+});
 
 mongoose.connect("mongodb+srv://monk:juventus@cluster0.rocdkbv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => {
@@ -110,12 +115,8 @@ mongoose.connect("mongodb+srv://monk:juventus@cluster0.rocdkbv.mongodb.net/?retr
     console.error('Error al conectar a la base de datos:', error);
   });
 
-// Configura CORS en Express
-const corsOptions = {
-  origin: ["http://localhost:3000", "https://socli.vercel.app/"],
-  methods: ["GET", "POST"] // Métodos permitidos
-};
-app.use(cors(corsOptions));
+// Configura CORS en Express también
+app.use(cors());
 
 const messageSchema = new Schema({
   text: String,
@@ -127,7 +128,7 @@ const MessageModel: Model<IMessage> = mongoose.model<IMessage>('Message', messag
 
 // Ruta principal que envía un mensaje <h1> al navegador
 app.get('/', (req, res) => {
-  res.send('<h1>Bienvenido al servidor !</h1>');
+  res.send('<h1>Bienvenido al servidor sock!</h1>');
 });
 
 io.on('connection', async (socket: Socket) => {
@@ -161,3 +162,4 @@ io.on('connection', async (socket: Socket) => {
 server.listen(4000, () => {
   console.log('Servidor escuchando en el puerto 4000');
 });
+
