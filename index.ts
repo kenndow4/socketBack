@@ -126,6 +126,11 @@ const messageSchema = new Schema({
 
 const MessageModel: Model<IMessage> = mongoose.model<IMessage>('Message', messageSchema);
 
+// Ruta principal que envía un mensaje <h1> al navegador
+app.get('/', (req, res) => {
+  res.send('<h1>Bienvenido al servidor!</h1>');
+});
+
 io.on('connection', async (socket: Socket) => {
   console.log(`Usuario conectado desde la dirección IP: ${socket.handshake.address}`);
 
