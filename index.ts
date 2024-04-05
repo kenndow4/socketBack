@@ -94,6 +94,7 @@ import cors from 'cors';
 
 interface IMessage extends Document {
   text: string;
+  ip: string;
   createdAt: Date;
 }
 
@@ -119,24 +120,27 @@ app.use(cors());
 
 const messageSchema = new Schema({
   text: String,
+  ip: String,
   createdAt: { type: Date, default: Date.now }
 });
 
 const MessageModel: Model<IMessage> = mongoose.model<IMessage>('Message', messageSchema);
 
 io.on('connection', async (socket: Socket) => {
-  console.log('Usuario conectado');
+  console.log(`Usuario conectado desde la dirección IP: ${socket.handshake.address}`);
 
   try {
-    // Obtener los últimos 10 mensajes ordenados por fecha de creación
-    const messages = await MessageModel.find().limit(10).sort({ createdAt: -1 });
+    // Obtener los últimos 15 mensajes ordenados por fecha de creación
+    const messages = await MessageModel.find().limit(15).sort({ createdAt: -1 });
     socket.emit('messages', messages.reverse());
   } catch (error) {
     console.error('Error al buscar mensajes:', error);
   }
 
   socket.on('message', async (data: IMessage) => {
-    const message = new MessageModel(data);
+    const ipAddress = socket.handshake.address; // Obtener la dirección IP del cliente
+    const messageData = { ...data, ip: ipAddress }; // Agregar la dirección IP al objeto de mensaje
+    const message = new MessageModel(messageData);
     try {
       await message.save();
       io.emit('message', message);
