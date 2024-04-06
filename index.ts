@@ -102,7 +102,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://socli.vercel.app/"],
+    origin: "*",
     methods: ["GET", "POST"] // Métodos permitidos
   }
 });
@@ -128,7 +128,7 @@ const MessageModel: Model<IMessage> = mongoose.model<IMessage>('Message', messag
 
 // Ruta principal que envía un mensaje <h1> al navegador
 app.get('/', (req, res) => {
-  res.send('<h1>Bienvenido al servidor sock!</h1>');
+  res.send('<h1>Bienvenido al servidor yeah!</h1>');
 });
 
 io.on('connection', async (socket: Socket) => {
