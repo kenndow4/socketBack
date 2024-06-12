@@ -103,7 +103,7 @@ const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"] // Métodos permitidos
+    methods: ["GET", "POST", "PUT", "DELETE"]
   }
 });
 
@@ -115,8 +115,8 @@ mongoose.connect("mongodb+srv://monk:juventus@cluster0.rocdkbv.mongodb.net/?retr
     console.error('Error al conectar a la base de datos:', error);
   });
 
-// Configura CORS en Express también
 app.use(cors());
+app.use(express.json());
 
 const messageSchema = new Schema({
   text: String,
@@ -126,16 +126,55 @@ const messageSchema = new Schema({
 
 const MessageModel: Model<IMessage> = mongoose.model<IMessage>('Message', messageSchema);
 
-// Ruta principal que envía un mensaje <h1> al navegador
 app.get('/', (req, res) => {
   res.send('<h1>Bienvenido al servidor yeah!</h1>');
+});
+
+app.get('/api/messages', async (req, res) => {
+  try {
+    const messages = await MessageModel.find().sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (error) {
+    res.status(500).send('Error al obtener mensajes');
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const messageData = req.body;
+    const message = new MessageModel(messageData);
+    await message.save();
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).send('Error al crear mensaje');
+  }
+});
+
+app.put('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+    const message = await MessageModel.findByIdAndUpdate(id, updatedData, { new: true });
+    res.json(message);
+  } catch (error) {
+    res.status(500).send('Error al actualizar mensaje');
+  }
+});
+
+app.delete('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await MessageModel.findByIdAndDelete(id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).send('Error al eliminar mensaje');
+  }
 });
 
 io.on('connection', async (socket: Socket) => {
   console.log(`Usuario conectado desde la dirección IP: ${socket.handshake.address}`);
 
   try {
-    // Obtener los últimos 15 mensajes ordenados por fecha de creación
     const messages = await MessageModel.find().limit(15).sort({ createdAt: -1 });
     socket.emit('messages', messages.reverse());
   } catch (error) {
@@ -143,8 +182,8 @@ io.on('connection', async (socket: Socket) => {
   }
 
   socket.on('message', async (data: IMessage) => {
-    const ipAddress = socket.handshake.address; // Obtener la dirección IP del cliente
-    const messageData = { ...data, ip: ipAddress }; // Agregar la dirección IP al objeto de mensaje
+    const ipAddress = socket.handshake.address;
+    const messageData = { ...data, ip: ipAddress };
     const message = new MessageModel(messageData);
     try {
       await message.save();
@@ -152,6 +191,10 @@ io.on('connection', async (socket: Socket) => {
     } catch (error) {
       console.error('Error al guardar mensaje:', error);
     }
+  });
+
+  socket.on('signal', (data) => {
+    socket.to(data.to).emit('signal', data.signal);
   });
 
   socket.on('disconnect', () => {
@@ -162,4 +205,3 @@ io.on('connection', async (socket: Socket) => {
 server.listen(4000, () => {
   console.log('Servidor escuchando en el puerto 4000');
 });
-
