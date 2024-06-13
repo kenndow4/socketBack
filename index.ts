@@ -171,30 +171,11 @@ app.delete('/api/messages/:id', async (req, res) => {
   }
 });
 
-io.on('connection', async (socket: Socket) => {
+io.on('connection', (socket: Socket) => {
   console.log(`Usuario conectado desde la dirección IP: ${socket.handshake.address}`);
 
-  try {
-    const messages = await MessageModel.find().limit(15).sort({ createdAt: -1 });
-    socket.emit('messages', messages.reverse());
-  } catch (error) {
-    console.error('Error al buscar mensajes:', error);
-  }
-
-  socket.on('message', async (data: IMessage) => {
-    const ipAddress = socket.handshake.address;
-    const messageData = { ...data, ip: ipAddress };
-    const message = new MessageModel(messageData);
-    try {
-      await message.save();
-      io.emit('message', message);
-    } catch (error) {
-      console.error('Error al guardar mensaje:', error);
-    }
-  });
-
   socket.on('signal', (data) => {
-    socket.to(data.to).emit('signal', data.signal);
+    socket.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
   });
 
   socket.on('disconnect', () => {
